@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech Brian's Best Friend Certificate Generator</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+    <style>
+        /* --- General Reset & Fonts --- */
+        :root {
+            --neon-pink: #ff69b4;
+            --neon-blue: #00ffff;
+            --bg-dark: #121212;
+            --bg-light: #f4f4f4;
+            --text-dark: #e0e0e0;
+            --text-light: #1f1f1f;
+            --card-dark: #1e1e1e;
+            --card-light: #ffffff;
+            --shadow-dark: 0 0 5px var(--neon-blue), 0 0 10px var(--neon-blue);
+            --shadow-light: 0 0 5px var(--neon-pink), 0 0 10px var(--neon-pink);
+            --current-bg: var(--bg-dark);
+            --current-text: var(--text-dark);
+            --current-card: var(--card-dark);
+            --current-shadow: var(--shadow-dark);
+        }
+
+        /* Neon Theme Defaults (Dark) */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--current-bg);
+            color: var(--current-text);
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.5s, color 0.5s;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- Theme Toggler Styles --- */
+        #theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: var(--neon-pink);
+            text-shadow: 0 0 5px var(--neon-pink);
+            z-index: 100;
+        }
+
+        /* Light Mode Overrides */
+        body.light-mode {
+            --current-bg: var(--bg-light);
+            --current-text: var(--text-light);
+            --current-card: var(--card-light);
+            --current-shadow: var(--shadow-light);
+        }
+        body.light-mode #theme-toggle {
+            color: var(--neon-blue);
+            text-shadow: 0 0 5px var(--neon-blue);
+        }
+
+        /* --- Splash Screen --- */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            transition: opacity 1s ease-out, visibility 1s;
+        }
+
+        .splash-text {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue);
+            animation: pulse 1.5s infinite alternate;
+        }
+        
+        @keyframes pulse {
+            from { opacity: 0.6; }
+            to { opacity: 1; }
+        }
+
+        /* Hide splash screen */
+        .splash-hidden {
+            opacity: 0 !important;
+            visibility: hidden !important;
+        }
+
+        /* --- Main Content Layout --- */
+        .container {
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            flex-grow: 1; 
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--neon-pink);
+            text-shadow: var(--current-shadow);
+        }
+
+        /* --- Card Styles --- */
+        .card {
+            background-color: var(--current-card);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--neon-blue);
+            margin-bottom: 20px;
+            transition: background-color 0.5s, border-color 0.5s;
+        }
+        
+        .card-header {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: var(--neon-blue);
+            text-shadow: var(--current-shadow);
+            border-bottom: 2px dashed var(--neon-pink);
+            padding-bottom: 10px;
+        }
+
+        /* --- Form Styles --- */
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"], input[type="email"], input[type="file"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            border: 1px solid var(--neon-pink);
+            background-color: var(--current-bg);
+            color: var(--current-text);
+            border-radius: 5px;
+            box-shadow: 0 0 3px var(--neon-pink);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        
+        input[type="file"] {
+            padding: 5px 10px;
+            margin-top: 5px;
+        }
+
+        input[type="text"]:focus, input[type="email"]:focus {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 8px var(--neon-blue);
+            outline: none;
+        }
+
+        .neon-button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-top: 25px;
+            background-color: var(--neon-pink);
+            color: var(--bg-dark);
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--neon-pink);
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+
+        .neon-button:hover {
+            background-color: var(--neon-blue);
+            color: var(--bg-dark);
+            box-shadow: 0 0 15px var(--neon-blue);
+        }
+
+        /* --- Certificate Output Styles --- */
+        #certificate-output {
+            text-align: center;
+            padding-top: 20px;
+        }
+
+        #certificate-canvas {
+            border: 5px double var(--neon-pink);
+            max-width: 100%;
+            height: auto;
+            display: none; 
+            margin-bottom: 20px;
+        }
+
+        .download-link {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            color: var(--current-text);
+            border: 2px solid var(--neon-blue);
+            text-shadow: var(--current-shadow);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .download-link:hover {
+            background-color: var(--neon-blue);
+            color: var(--bg-dark);
+        }
+        
+        /* --- Footer Styles --- */
+        footer {
+            margin-top: auto; 
+            text-align: center;
+            padding: 20px 0;
+            border-top: 1px solid var(--neon-pink);
+            color: var(--neon-pink);
+            text-shadow: var(--current-shadow);
+            font-size: 0.9rem;
+            background-color: var(--current-card);
+        }
+
+        footer strong {
+            color: var(--neon-blue);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="splash-screen">
+        <div class="splash-text">
+            Bestie Cert Generator
+        </div>
+    </div>
+
+    <button id="theme-toggle" title="Toggle Dark/Light Mode">
+        ☀️
+    </button>
+
+    <div class="container">
+        <h1>Best Friend Certificate Generator</h1>
+
+        <div class="card">
+            <div class="card-header">
+                Input Details & Profile
+            </div>
+            <form id="certificate-form">
+                <label for="friend-name">Best Friend's Full Name:</label>
+                <input type="text" id="friend-name" required placeholder="e.g., Bes P.J, Merab e.t.c... ">
+
+                <label for="giver-name">Your Name (The Giver):</label>
+                <input type="text" id="giver-name" required placeholder="e.g., Tech Brian">
+                
+                <label for="profile-image">Upload Best Friend's Profile Picture (Optional, for certificate):</label>
+                <input type="file" id="profile-image" accept="image/*">
+
+                <label for="contact-info">Friend's Contact (For Sharing Link):</label>
+                <input type="email" id="contact-info" placeholder="Optional: friend@example.com (Not functional for direct sending)">
+
+                <button type="submit" class="neon-button">
+                    GENERATE CERTIFICATE
+                </button>
+            </form>
+        </div>
+
+        <div class="card" id="certificate-output" style="display:none;">
+            <div class="card-header">
+                Your Personalized Certificate
+            </div>
+
+            <canvas id="certificate-canvas" width="800" height="600"></canvas>
+
+            <div id="download-section">
+                <a href="#" id="download-png" class="download-link" onclick="downloadCert('png')">
+                    ⬇️ Download PNG
+                </a>
+                <a href="#" id="download-jpg" class="download-link" onclick="downloadCert('jpg')">
+                    ⬇️ Download JPG
+                </a>
+                <p style="margin-top: 20px;">
+                    **Sharing Tip:** Right-click and save the image, or use the download links, then share directly via your preferred messaging app!
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        A Project by <strong>Tech Brian</strong> | For the Best of Friends
+    </footer>
+
+    <script>
+        // --- Configuration Variables ---
+        const PROFILE_PIC_RADIUS = 50;
+        const PROFILE_PIC_Y = 180; // Center Y position for the profile picture
+        const FRIEND_NAME_Y = 280; 
+        const MESSAGE_START_Y = 340; // Starting Y for the wrapped long message
+        const GIVER_NAME_Y = 480;  
+        const TEXT_COLOR = '#ff69b4'; 
+        const NAME_COLOR = '#00ffff'; 
+        const DATE_FOOTER_Y = 580;
+
+        // --- Splash Screen Logic ---
+        window.addEventListener('load', () => {
+            const splash = document.getElementById('splash-screen');
+            setTimeout(() => {
+                splash.classList.add('splash-hidden');
+            }, 2000); 
+        });
+
+        // --- Theme Toggle Logic ---
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            const body = document.body;
+            body.classList.toggle('light-mode');
+            
+            const toggleButton = document.getElementById('theme-toggle');
+            if (body.classList.contains('light-mode')) {
+                toggleButton.innerHTML = '🌙'; 
+            } else {
+                toggleButton.innerHTML = '☀️'; 
+            }
+        });
+
+        // Helper function to wrap text within a defined width
+        function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+            const words = text.split(' ');
+            let line = '';
+            let lineCount = 0;
+
+            for(let n = 0; n < words.length; n++) {
+                const testLine = line + words[n] + ' ';
+                const metrics = ctx.measureText(testLine);
+                const testWidth = metrics.width;
+                if (testWidth > maxWidth && n > 0) {
+                    ctx.fillText(line.trim(), x, y); // Trim leading/trailing spaces
+                    line = words[n] + ' ';
+                    y += lineHeight;
+                    lineCount++;
+                } else {
+                    line = testLine;
+                }
+            }
+            ctx.fillText(line.trim(), x, y);
+            return y + lineHeight; 
+        }
+        
+        // Helper function to draw a circular image (for profile picture)
+        function drawCircularImage(ctx, img, centerX, centerY, radius) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2, true);
+            ctx.closePath();
+            ctx.clip();
+            
+            // Calculate position to draw image so it is centered and fits in the circle
+            const size = radius * 2;
+            ctx.drawImage(img, centerX - radius, centerY - radius, size, size);
+
+            ctx.restore();
+            
+            // Draw a neon border around the profile picture
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2, true);
+            ctx.strokeStyle = NAME_COLOR;
+            ctx.lineWidth = 4;
+            ctx.shadowColor = NAME_COLOR;
+            ctx.shadowBlur = 8;
+            ctx.stroke();
+            ctx.shadowBlur = 0; // Reset shadow for subsequent drawings
+        }
+
+        // --- Certificate Generation Function ---
+        document.getElementById('certificate-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const friendName = document.getElementById('friend-name').value;
+            const giverName = document.getElementById('giver-name').value;
+            const imageFile = document.getElementById('profile-image').files[0]; // Renamed for clarity
+            
+            generateCertificate(friendName, giverName, imageFile);
+        });
+
+        function generateCertificate(friendName, giverName, imageFile) {
+            const canvas = document.getElementById('certificate-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            const W = canvas.width;
+            const H = canvas.height;
+            const SERIAL_NUMBER = `BF-${Date.now().toString().slice(-8)}-${Math.floor(Math.random() * 900) + 100}`;
+            const TODAY_DATE = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            
+            // 1. Draw Fallback Background
+            const bgColor = document.body.classList.contains('light-mode') ? '#ffffff' : '#1e1e1e';
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, W, H);
+            
+            // Decorative Border 
+            ctx.strokeStyle = TEXT_COLOR;
+            ctx.lineWidth = 15;
+            ctx.strokeRect(20, 20, W - 40, H - 40);
+            ctx.lineWidth = 5;
+            ctx.strokeStyle = NAME_COLOR;
+            ctx.strokeRect(30, 30, W - 60, H - 60);
+
+            // --- Function to draw all text/content after image loads ---
+            const drawContent = (profileImg = null) => {
+                // Reset shadows for a clean start
+                ctx.shadowBlur = 0;
+                
+                // --- Text Styles (Neon Effect) ---
+                ctx.textAlign = 'center';
+                ctx.shadowColor = TEXT_COLOR;
+                ctx.shadowBlur = 10; 
+
+                // 2. Title
+                ctx.fillStyle = TEXT_COLOR;
+                ctx.font = 'bold 50px Arial';
+                ctx.fillText('CERTIFICATE OF BEST FRIENDSHIP', W / 2, 100);
+
+                // 3. Draw Profile Picture (if loaded)
+                if (profileImg) {
+                    drawCircularImage(ctx, profileImg, W / 2, PROFILE_PIC_Y, PROFILE_PIC_RADIUS);
+                } else {
+                    // Draw a placeholder circle if no image is uploaded
+                    ctx.beginPath();
+                    ctx.arc(W / 2, PROFILE_PIC_Y, PROFILE_PIC_RADIUS, 0, Math.PI * 2);
+                    ctx.fillStyle = NAME_COLOR;
+                    ctx.fill();
+                    ctx.shadowColor = NAME_COLOR;
+                    ctx.shadowBlur = 8;
+                }
+                ctx.shadowBlur = 0; // Turn off profile shadow before drawing names/text
+
+                // 4. Friend's Name
+                ctx.fillStyle = NAME_COLOR;
+                ctx.shadowColor = NAME_COLOR;
+                ctx.shadowBlur = 8;
+                ctx.font = 'bold 45px "Times New Roman"'; 
+                ctx.fillText(friendName.toUpperCase(), W / 2, FRIEND_NAME_Y);
+                ctx.shadowBlur = 0;
+                
+                // 5. Presentation Line
+                ctx.font = '20px Arial';
+                ctx.fillStyle = TEXT_COLOR;
+                ctx.fillText('This prestigious recognition is proudly presented to:', W / 2, FRIEND_NAME_Y - 40);
+
+
+                // 6. Congratulatory Message (Longer & Meaningful)
+                const message = "This award recognizes your unparalleled loyalty, infectious positivity, and unwavering support through thick and thin. You are deeply valued for the unique spark you bring to life, making every moment an adventure. Our bond is truly exceptional and everlasting.";
+                const lineHeight = 20;
+                const maxWidth = W * 0.75; 
+                ctx.font = '16px Arial';
+                ctx.fillStyle = TEXT_COLOR;
+                ctx.shadowColor = TEXT_COLOR;
+                ctx.shadowBlur = 6;
+                wrapText(ctx, message, W / 2, MESSAGE_START_Y, maxWidth, lineHeight);
+                ctx.shadowBlur = 0; 
+                
+
+                // 7. Signature Line
+                ctx.fillStyle = NAME_COLOR;
+                ctx.font = '25px Arial';
+                ctx.fillText(`Awarded by: ${giverName}`, W / 2, GIVER_NAME_Y);
+                
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = NAME_COLOR;
+                ctx.beginPath();
+                ctx.moveTo(W / 2 - 150, GIVER_NAME_Y + 5);
+                ctx.lineTo(W / 2 + 150, GIVER_NAME_Y + 5);
+                ctx.stroke();
+
+                // 8. Certificate Footer Details (Powered By, Serial, Date)
+                ctx.font = '14px Arial';
+                ctx.fillStyle = '#999999';
+                
+                ctx.textAlign = 'left';
+                ctx.fillText(`Serial No: ${SERIAL_NUMBER}`, 50, DATE_FOOTER_Y);
+                
+                ctx.textAlign = 'center';
+                ctx.fillText(`Powered by: Tech Merab`, W / 2, DATE_FOOTER_Y);
+
+                ctx.textAlign = 'right';
+                ctx.fillText(`Date Generated: ${TODAY_DATE}`, W - 50, DATE_FOOTER_Y);
+
+
+                // 9. Display the Canvas
+                document.getElementById('certificate-output').style.display = 'block';
+                document.getElementById('certificate-canvas').style.display = 'block';
+                canvas.scrollIntoView({ behavior: 'smooth' });
+            };
+
+            // --- Image Handling Logic ---
+            if (imageFile) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        drawContent(img); // Pass the loaded image to the drawing function
+                    };
+                    img.onerror = function() {
+                        console.error("Failed to load profile image. Proceeding without image.");
+                        drawContent(null);
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(imageFile);
+            } else {
+                drawContent(null); // No image, draw immediately
+            }
+        }
+
+        // --- Download Function ---
+        function downloadCert(format) {
+            const canvas = document.getElementById('certificate-canvas');
+            const friendName = document.getElementById('friend-name').value;
+            let filename = `Bestie_Cert_for_${friendName.replace(/\s/g, '_')}.${format}`;
+            let mimeType;
+
+            if (format === 'png') {
+                mimeType = 'image/png';
+            } else if (format === 'jpg') {
+                mimeType = 'image/jpeg';
+            } else {
+                return;
+            }
+
+            // Use FileSaver to download
+            canvas.toBlob(function(blob) {
+                saveAs(blob, filename);
+            }, mimeType, 0.9); 
+        }
+    </script>
+</body>
+</html>
